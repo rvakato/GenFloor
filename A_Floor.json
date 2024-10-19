@@ -1,0 +1,34 @@
+{
+  "FloorPlan": [
+    {
+      "Floor": 0,
+      "Height": 3010,
+      "FloorType": "F0-4"
+    },
+    {
+      "Floor": 1,
+      "Height": 3610,
+      "FloorType": "F0-4"
+    },
+    {
+      "Floor": 2,
+      "Height": 4210,
+      "FloorType": "F0-4"
+    },
+    {
+      "Floor": 3,
+      "Height": 4810,
+      "FloorType": "F0-4"
+    },
+    {
+      "Floor": 4,
+      "Height": 5410,
+      "FloorType": "F0-4"
+    },
+    {
+      "Floor": 5,
+      "Height": 6010,
+      "FloorType": "F5"
+    }
+  ]
+}
