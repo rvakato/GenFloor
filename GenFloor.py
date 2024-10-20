@@ -1,45 +1,67 @@
+import streamlit as st
 import json
+import base64
 
-def create_floor_plan():
-    floor_plan = []
-    current_floor = 0
-    current_height = int(input("請輸入初始樓層高度："))
-    initial_height = current_height
+st.title('Floor Height JSON Generator')
 
-    while True:
-        floor_input = input("請輸入樓層類型和高度差（例如：F0-4, 600），或輸入 'ok' 完成：")
-        if floor_input.lower() == 'ok':
-            break
+initial_height = st.number_input('Initial Floor Height', value=3010)
 
-        floor_type, height_diff = floor_input.split(', ')
-        height_diff = int(height_diff)
+# Track number of rows dynamically with a session state
+if 'number_of_rows' not in st.session_state:
+    st.session_state.number_of_rows = 3
 
-        start_floor, end_floor = floor_type[1:].split('-') if '-' in floor_type else (floor_type[1:], floor_type[1:])
-        start_floor, end_floor = int(start_floor), int(end_floor)
+floor_data = []
 
-        for floor in range(start_floor, end_floor + 1):
-            floor_plan.append({
-                "Floor": current_floor,
-                "Height": current_height,
-                "FloorType": floor_type
-            })
-            current_floor += 1
-            if floor < end_floor:
-                current_height += height_diff
+for i in range(st.session_state.number_of_rows):
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        floor_range = st.text_input(f'Floor Range #{i + 1}', key=f'floor_range_{i}', placeholder='e.g., 0-3 or 6')
+    with col2:
+        floor_height = st.text_input(f'Floor Height #{i + 1}', key=f'floor_height_{i}', placeholder='e.g., 330')
+    with col3:
+        floor_type = st.text_input(f'Floor Type #{i + 1}', key=f'floor_type_{i}', placeholder='e.g., A_Floor_3')
+
+    if floor_range and floor_height and floor_type:
+        floor_data.append((floor_range, floor_height, floor_type))
+
+# Create a single row for the buttons
+col1, col2, _, _, _ = st.columns(5)
+
+with col1:
+    if st.button('Add Floors'):
+        st.session_state.number_of_rows = min(st.session_state.number_of_rows + 1, 30)
+        st.rerun()
+
+with col2:
+    if st.button('Remove Floors'):
+        st.session_state.number_of_rows = max(st.session_state.number_of_rows - 1, 1)
+        st.rerun()
+
+if st.button('Generate JSON', help='Click to generate JSON', type='primary'):
+    json_output = []
+    current_height = initial_height
+
+    for floor_range, floor_height, floor_type in floor_data:
+        try:
+            floor_height = int(floor_height)
+            if '-' in floor_range:
+                start, end = map(int, floor_range.split('-'))
+                floor_list = list(range(start, end + 1))
             else:
-                current_height = initial_height + (current_floor * height_diff)
+                floor_list = [int(floor_range)]
 
-    return floor_plan
+            for floor in floor_list:
+                json_output.append({
+                    'Floor': floor,
+                    'Height': current_height,
+                    'FloorType': floor_type
+                })
+                current_height += floor_height
+        except ValueError:
+            st.error(f'Invalid input for floor range or height: {floor_range}, {floor_height}')
 
-def save_json(data, filename):
-    with open(f"{filename}.json", 'w', encoding='utf-8') as f:
-        json.dump({"FloorPlan": data}, f, ensure_ascii=False, indent=2)
-
-def main():
-    floor_plan = create_floor_plan()
-    filename = input("請輸入 JSON 檔案名稱（不需要加副檔名）：")
-    save_json(floor_plan, filename)
-    print(f"JSON 檔案 '{filename}.json' 已成功創建。")
-
-if __name__ == "__main__":
-    main()
+    st.json(json_output)
+    json_string = json.dumps({'FloorPlan': json_output}, indent=2)
+    b64 = base64.b64encode(json_string.encode()).decode()
+    href = f'<a href="data:file/json;base64,{b64}" download="floor_plan.json">Download JSON File</a>'
+    st.markdown(href, unsafe_allow_html=True)
