@@ -4,9 +4,8 @@ import base64
 
 st.title('Floor Height JSON Generator')
 
-initial_height = st.number_input('Initial Floor Height', value=3010)
+initial_height = st.number_input('Initial Floor Height', value=3010.0, step=0.1)
 
-# Track number of rows dynamically with a session state
 if 'number_of_rows' not in st.session_state:
     st.session_state.number_of_rows = 3
 
@@ -17,14 +16,13 @@ for i in range(st.session_state.number_of_rows):
     with col1:
         floor_range = st.text_input(f'Floor Range #{i + 1}', key=f'floor_range_{i}', placeholder='e.g., 0-3 or 6')
     with col2:
-        floor_height = st.text_input(f'Floor Height #{i + 1}', key=f'floor_height_{i}', placeholder='e.g., 330')
+        floor_height = st.text_input(f'Floor Height #{i + 1}', key=f'floor_height_{i}', placeholder='e.g., 330.5')
     with col3:
         floor_type = st.text_input(f'Floor Type #{i + 1}', key=f'floor_type_{i}', placeholder='e.g., A_Floor_3')
 
     if floor_range and floor_height and floor_type:
         floor_data.append((floor_range, floor_height, floor_type))
 
-# Create a single row for the buttons
 col1, col2, _, _, _ = st.columns(5)
 
 with col1:
@@ -43,7 +41,7 @@ if st.button('Generate JSON', help='Click to generate JSON', type='primary'):
 
     for floor_range, floor_height, floor_type in floor_data:
         try:
-            floor_height = int(floor_height)
+            floor_height = float(floor_height)
             if '-' in floor_range:
                 start, end = map(int, floor_range.split('-'))
                 floor_list = list(range(start, end + 1))
